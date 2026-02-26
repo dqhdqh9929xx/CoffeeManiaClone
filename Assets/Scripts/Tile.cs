@@ -12,9 +12,17 @@ public class Tile : MonoBehaviour
     private Collider2D col;
     private Coroutine moveRoutine;
 
+    // Bottle slot system
+    private Transform[] bottleSlots;
+    private int reservedCount = 0;
+    private int arrivedCount = 0;
+    public int TypeCount => (type == 0) ? 4 : 8;
+    public bool IsFull => arrivedCount >= TypeCount;
+
     private void Awake()
     {
         col = GetComponent<Collider2D>();
+        CreateBottleSlots();
     }
     public Bounds Bounds
     {
@@ -30,8 +38,9 @@ public class Tile : MonoBehaviour
             if (SlotsManager.Instance.HasEmptySlot())
             {
                 isInSlot = true;
+                BoardManager.Instance.RemoveTile(this);
                 SlotsManager.Instance.AddTile(this);
-                GamePlay.Instance.AddFoodFromTile(corlor, type);
+                GamePlay.Instance.AddFoodFromTile(corlor, type, this);
             }
             else
             {
@@ -66,5 +75,64 @@ public class Tile : MonoBehaviour
         }
 
         transform.position = targetPos;
+    }
+
+    void CreateBottleSlots()
+    {
+        int count = TypeCount;
+        bottleSlots = new Transform[count];
+
+        int cols, rows;
+        if (count == 4)
+        {
+            cols = 2; rows = 2;
+        }
+        else
+        {
+            cols = 4; rows = 2;
+        }
+
+        float spacingX = 0.5f;
+        float spacingY = 0.5f;
+        float startX = -(cols - 1) * spacingX / 3f;
+        float startY = -(rows - 1) * spacingY / 3f;
+
+        int index = 0;
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                GameObject slotObj = new GameObject($"BottleSlot_{index}");
+                slotObj.transform.SetParent(transform);
+                slotObj.transform.localPosition = new Vector3(
+                    startX + c * spacingX,
+                    startY + r * spacingY,
+                    0f
+                );
+                bottleSlots[index] = slotObj.transform;
+                index++;
+            }
+        }
+    }
+
+    public Transform ReserveNextSlot()
+    {
+        if (reservedCount < bottleSlots.Length)
+        {
+            Transform slot = bottleSlots[reservedCount];
+            reservedCount++;
+            return slot;
+        }
+        return null;
+    }
+
+    public void OnBottleArrived()
+    {
+        arrivedCount++;
+        if (arrivedCount >= TypeCount)
+        {
+            SlotsManager.Instance.RemoveTile(this);
+            Destroy(gameObject, 0.5f);
+        }
     }
 }

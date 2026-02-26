@@ -38,7 +38,7 @@ public class ConveyorManager : MonoBehaviour
     {
         ListItemsLevel.Clear();
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 30; i++)
         {
             int randomValue = Random.Range(0, 4);
             ListItemsLevel.Add(randomValue);
@@ -60,7 +60,7 @@ public class ConveyorManager : MonoBehaviour
 
         GameObject food = Instantiate(prefab, pathPoints[0].position, Quaternion.identity);
 
-        int sortingOrder = 20 - currentLevelIndex;
+        int sortingOrder = 30 - currentLevelIndex;
         foreach (SpriteRenderer sr in food.GetComponentsInChildren<SpriteRenderer>(true))
         {
             sr.sortingOrder = sortingOrder;

@@ -55,6 +55,26 @@ public class ConveyorItem : MonoBehaviour
             .SetEase(Ease.Linear);
     }
 
+    public void MoveToTile(Tile targetTile)
+    {
+        moveTween?.Kill();
+
+        Transform slot = targetTile.ReserveNextSlot();
+        if (slot == null) return;
+
+        // Parent immediately so bottle follows tile if it moves
+        transform.SetParent(slot);
+
+        // Animate local position to slot center
+        moveTween = transform
+            .DOLocalMove(Vector3.zero, 0.4f)
+            .SetEase(Ease.InOutQuad)
+            .OnComplete(() =>
+            {
+                targetTile.OnBottleArrived();
+            });
+    }
+
     private void OnDisable()
     {
         moveTween?.Kill();

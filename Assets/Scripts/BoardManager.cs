@@ -24,4 +24,9 @@ public class BoardManager : MonoBehaviour
         }
         return false;
     }
+
+    public void RemoveTile(Tile tile)
+    {
+        allTiles.Remove(tile);
+    }
 }

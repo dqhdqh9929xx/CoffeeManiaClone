@@ -3,11 +3,18 @@ using System.Collections.Generic;
 
 public class GamePlay : MonoBehaviour
 {
+    [System.Serializable]
+    public class FoodEntry
+    {
+        public int foodType;
+        public Tile sourceTile;
+    }
+
     public static GamePlay Instance;
     public ConveyorManager conveyorManager;
 
     [HideInInspector]
-    public List<int> currentTilesGamePlay = new List<int>();
+    public List<FoodEntry> currentTilesGamePlay = new List<FoodEntry>();
 
     [Header("Match Settings")]
     public float matchCooldown = 0.3f;
@@ -18,14 +25,14 @@ public class GamePlay : MonoBehaviour
         Instance = this;
     }
 
-    public void AddFoodFromTile(string color, int tileType)
+    public void AddFoodFromTile(string color, int tileType, Tile tile)
     {
         int foodType = ColorToFoodType(color);
         int count = (tileType == 0) ? 4 : 8;
 
         for (int i = 0; i < count; i++)
         {
-            currentTilesGamePlay.Add(foodType);
+            currentTilesGamePlay.Add(new FoodEntry { foodType = foodType, sourceTile = tile });
         }
     }
 
@@ -42,11 +49,6 @@ public class GamePlay : MonoBehaviour
     }
     
 
-    public void MatchFoodPrefab1() => TryMatch(0);
-    public void MatchFoodPrefab2() => TryMatch(1);
-    public void MatchFoodPrefab3() => TryMatch(2);
-    public void MatchFoodPrefab4() => TryMatch(3);
-
     void Update()
     {
         if (currentTilesGamePlay.Count == 0) return;
@@ -59,17 +61,26 @@ public class GamePlay : MonoBehaviour
 
         for (int i = 0; i < currentTilesGamePlay.Count; i++)
         {
-            if (currentTilesGamePlay[i] == requiredType)
+            // Safety: skip entries for destroyed tiles
+            if (currentTilesGamePlay[i].sourceTile == null)
             {
                 currentTilesGamePlay.RemoveAt(i);
-                TryMatch(requiredType);
+                i--;
+                continue;
+            }
+
+            if (currentTilesGamePlay[i].foodType == requiredType)
+            {
+                Tile targetTile = currentTilesGamePlay[i].sourceTile;
+                currentTilesGamePlay.RemoveAt(i);
+                TryMatch(requiredType, targetTile);
                 matchTimer = matchCooldown;
                 break;
             }
         }
     }
 
-    void TryMatch(int requiredType)
+    void TryMatch(int requiredType, Tile targetTile)
     {
         conveyorManager.MatchIndex++;
 
@@ -77,7 +88,7 @@ public class GamePlay : MonoBehaviour
         {
             ConveyorItem firstItem = conveyorManager.CurrentItemsList[0];
             conveyorManager.CurrentItemsList.RemoveAt(0);
-            Destroy(firstItem.gameObject);
+            firstItem.MoveToTile(targetTile);
             conveyorManager.ShiftItemsForward();
         }
     }

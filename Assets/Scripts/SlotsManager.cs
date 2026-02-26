@@ -8,36 +8,58 @@ public class SlotsManager : MonoBehaviour
     [Header("Slot Settings")]
     public int maxSlots = 4;
     public Transform[] slotPositions;
-    private List<Tile> currentTiles = new List<Tile>();
+    private Tile[] currentSlots; // fixed-size array, null = empty slot
+
     private void Awake()
     {
         Instance = this;
+        currentSlots = new Tile[maxSlots];
     }
+
     public bool HasEmptySlot()
     {
-        return currentTiles.Count < maxSlots;
+        for (int i = 0; i < currentSlots.Length; i++)
+        {
+            if (currentSlots[i] == null) return true;
+        }
+        return false;
     }
+
     public void AddTile(Tile tile)
     {
-        if (!HasEmptySlot())
+        int emptyIndex = -1;
+        for (int i = 0; i < currentSlots.Length; i++)
+        {
+            if (currentSlots[i] == null)
+            {
+                emptyIndex = i;
+                break;
+            }
+        }
+
+        if (emptyIndex < 0)
         {
             Debug.Log("Slot đã đầy!");
             return;
         }
-        currentTiles.Add(tile);
 
-        int index = currentTiles.Count - 1;
+        currentSlots[emptyIndex] = tile;
 
-        if (index < slotPositions.Length)
+        if (emptyIndex < slotPositions.Length)
         {
-            tile.MoveToSlot(slotPositions[index].position);
+            tile.MoveToSlot(slotPositions[emptyIndex].position);
         }
     }
+
     public void RemoveTile(Tile tile)
     {
-        if (currentTiles.Contains(tile))
+        for (int i = 0; i < currentSlots.Length; i++)
         {
-            currentTiles.Remove(tile);
+            if (currentSlots[i] == tile)
+            {
+                currentSlots[i] = null; // chỉ xoá slot này, giữ nguyên index các tile khác
+                break;
+            }
         }
     }
 }
