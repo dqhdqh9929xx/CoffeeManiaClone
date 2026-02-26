@@ -4,7 +4,9 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class Tile : MonoBehaviour
 {
+    public int type; // có 2 loại tile: 0 = khoanh 4, 1 = khoanh 8
     public int layer;
+    public string corlor; // có 4 màu: 0 - đỏ, 1 - hồng, 2 - xanh dương, 3 - vàng
 
     private bool isInSlot = false;
     private Collider2D col;
@@ -27,8 +29,9 @@ public class Tile : MonoBehaviour
         {
             if (SlotsManager.Instance.HasEmptySlot())
             {
-                isInSlot = true; // set trước để tránh spam click
+                isInSlot = true;
                 SlotsManager.Instance.AddTile(this);
+                GamePlay.Instance.AddFoodFromTile(corlor, type);
             }
             else
             {

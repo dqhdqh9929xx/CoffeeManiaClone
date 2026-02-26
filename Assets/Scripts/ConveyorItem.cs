@@ -5,21 +5,54 @@ public class ConveyorItem : MonoBehaviour
 {
     private Tween moveTween;
 
-    public void Init(Vector3[] path, float duration, ConveyorManager manager)
-    {
-        transform.position = path[0];
-        transform.rotation = Quaternion.identity;
+    public int FoodType { get; private set; }
+    public int SlotIndex { get; private set; }
 
-        moveTween = transform.DOPath(path, duration, PathType.CatmullRom)
-            .SetEase(Ease.Linear)
-            .OnUpdate(LockZ);
+    private Transform[] pathPoints;
+    private float moveDuration;
+
+    public void Init(
+        int slotIndex,
+        Transform[] allPathPoints,
+        float duration,
+        int foodType)
+    {
+        FoodType = foodType;
+        SlotIndex = 0; // bắt đầu từ đầu băng chuyền
+        pathPoints = allPathPoints;
+        moveDuration = duration;
+
+        transform.position = pathPoints[0].position;
+
+        MoveStepByStep(slotIndex);
     }
 
-    void LockZ()
+    void MoveStepByStep(int targetSlot)
     {
-        Vector3 pos = transform.position;
-        pos.z = 0f;
-        transform.position = pos;
+        if (SlotIndex >= targetSlot)
+            return;
+
+        moveTween?.Kill();
+
+        moveTween = transform
+            .DOMove(pathPoints[SlotIndex + 1].position, moveDuration / pathPoints.Length)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                SlotIndex++;
+                MoveStepByStep(targetSlot);
+            });
+    }
+
+    public void MoveToSlot(int newSlotIndex)
+    {
+        SlotIndex = newSlotIndex;
+
+        moveTween?.Kill();
+
+        moveTween = transform
+            .DOMove(pathPoints[newSlotIndex].position, 0.25f)
+            .SetEase(Ease.Linear);
     }
 
     private void OnDisable()
