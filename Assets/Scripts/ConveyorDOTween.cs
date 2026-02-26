@@ -60,6 +60,12 @@ public class ConveyorManager : MonoBehaviour
 
         GameObject food = Instantiate(prefab, pathPoints[0].position, Quaternion.identity);
 
+        int sortingOrder = 20 - currentLevelIndex;
+        foreach (SpriteRenderer sr in food.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            sr.sortingOrder = sortingOrder;
+        }
+
         ConveyorItem item = food.GetComponent<ConveyorItem>();
 
         item.Init(
